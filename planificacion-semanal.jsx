@@ -35,6 +35,7 @@ const emptyPlan = (semana = "") => ({
   circulo: "Sembradores Caguas",
   tema: "Los deportes",
   subTema: "",
+  nivelGrado: "1°-2°",
   dias: Object.fromEntries(
     DIAS.map(d => [d, {
       asamblea: ASAMBLEA_TEXT,
@@ -81,16 +82,63 @@ function apiHeaders() {
   };
 }
 
+// ─── GRADE HELPERS ───────────────────────────────────────────────────────────
+
+function gradeAgeContext(nivel) {
+  return ({
+    "1°-2°": "estudiantes de 6-8 años — pensamiento concreto, aprendizaje lúdico y sensorial",
+    "3°-4°": "estudiantes de 8-10 años — transición al pensamiento abstracto, trabajo colaborativo",
+    "5°-6°": "estudiantes de 10-12 años — pensamiento crítico emergente, investigación y liderazgo",
+  })[nivel] || "";
+}
+
+function gradeInstructions(nivel) {
+  return ({
+    "1°-2°": `• Actividades lúdicas, concretas y sensoriales (juegos, canciones, manipulativos)
+• Vocabulario simple; instrucciones cortas y paso a paso
+• Literacy y numeracy básica integrada con el tema
+• Apoyo visual y movimiento corporal en las actividades
+• Recursos bilingües simples (cuentos, videos cortos en inglés y español)`,
+    "3°-4°": `• Balance entre actividades concretas y abstractas
+• Lectura y escritura como herramientas activas de aprendizaje
+• Proyectos colaborativos, discusión grupal y conexiones interdisciplinarias
+• Investigación guiada usando múltiples fuentes (español e inglés)
+• Introducción a pensamiento crítico mediante preguntas abiertas`,
+    "5°-6°": `• Pensamiento crítico, análisis y debate argumentado
+• Investigación independiente con fuentes académicas en español e inglés
+• Proyectos con impacto comunitario y aplicación al mundo real
+• Liderazgo estudiantil, co-creación del conocimiento y presentaciones
+• Conexión con temas globales relevantes para pre-adolescentes`,
+  })[nivel] || "";
+}
+
 // ─── AI GENERATION ───────────────────────────────────────────────────────────
 
 async function generateContent(plan, dia, materia, fieldLabel, setter) {
   setter("⏳ Generando...");
   const ctx = plan.dias[dia][materia];
-  const prompt = `Eres asistente pedagógica experta en educación alternativa para niños en Puerto Rico.
-Estás ayudando a Yeliza Collazo Díaz a crear su planificación semanal del Círculo Sembradores Caguas.
-Tema del año: "${plan.tema}". Sub-tema esta semana: "${plan.subTema}". Día: ${dia}. Materia: ${materia}.
-Contexto actual: Objetivos: ${ctx.objetivos||"(vacío)"}. Preguntas: ${ctx.preguntasGuias||"(vacío)"}.
-Genera SOLO el contenido para el campo "${fieldLabel}" en español, conciso y práctico (máx 3-4 oraciones). Sin encabezados. Solo el texto directo.`;
+  const prompt = `Eres una asistente pedagógica experta en educación alternativa para niños en Puerto Rico.
+Apoyas a Yeliza Collazo Díaz, facilitadora del Círculo Sembradores Caguas — una escuela alternativa que valora el aprendizaje experiencial, colaborativo e integrado con la naturaleza y la comunidad.
+
+CONTEXTO DE LA PLANIFICACIÓN:
+• Nivel de grado: ${plan.nivelGrado || "1°-2°"} (${gradeAgeContext(plan.nivelGrado || "1°-2°")})
+• Tema del año: "${plan.tema}"
+• Sub-tema esta semana: "${plan.subTema || "(sin definir aún)"}"
+• Día: ${dia} | Materia: ${materia}
+• Objetivos ya escritos: ${ctx.objetivos || "(vacío)"}
+• Preguntas guías ya escritas: ${ctx.preguntasGuias || "(vacío)"}
+
+TU TAREA:
+Genera únicamente el contenido para el campo: "${fieldLabel}"
+
+CRITERIOS DE CALIDAD:
+• Vocabulario y complejidad apropiados para ${plan.nivelGrado || "1°-2°"}
+• Actividades concretas, creativas y aplicables en el aula del círculo
+• Cuando enriquezca la comprensión, incorpora términos o recursos en inglés
+• Conecta con el subtema de la semana y el contexto de Puerto Rico
+• Inspira curiosidad y participación activa del estudiante
+
+Responde SOLO con el texto del campo. Sin encabezados, sin explicaciones. Máximo 3-4 oraciones.`;
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -104,12 +152,38 @@ Genera SOLO el contenido para el campo "${fieldLabel}" en español, conciso y pr
 }
 
 async function generateAllForMateria(plan, dia, materia, onUpdate, onError) {
-  const prompt = `Eres asistente pedagógica experta en educación alternativa para niños en Puerto Rico.
-Tema del año: "${plan.tema}". Sub-tema esta semana: "${plan.subTema}". Día: ${dia}. Materia: ${materia}.
-Genera un plan completo para esta materia en español, conciso y práctico.
-Responde ÚNICAMENTE con un objeto JSON con estas 7 claves exactas:
-"objetivos", "preguntasGuias", "ideasFundamentales", "inicio", "desarrollo", "cierre", "recursos".
-Para recursos incluye 1-2 URLs educativas. Sin markdown, sin texto extra, solo JSON puro.`;
+  const nivel = plan.nivelGrado || "1°-2°";
+  const prompt = `Eres una asistente pedagógica experta en educación alternativa para niños en Puerto Rico.
+Apoyas a Yeliza Collazo Díaz, facilitadora del Círculo Sembradores Caguas — escuela alternativa que valora el aprendizaje experiencial, colaborativo y conectado con la naturaleza y la comunidad puertorriqueña.
+
+CONTEXTO:
+• Nivel de grado: ${nivel} (${gradeAgeContext(nivel)})
+• Tema del año: "${plan.tema}"
+• Sub-tema esta semana: "${plan.subTema || "(sin definir aún)"}"
+• Día: ${dia} | Materia: ${materia}
+
+INSTRUCCIONES PEDAGÓGICAS PARA ${nivel}:
+${gradeInstructions(nivel)}
+
+PRINCIPIOS DEL CÍRCULO SEMBRADORES:
+• Educación alternativa, experiencial y basada en proyectos
+• Integración con la naturaleza, la cultura y la comunidad de Puerto Rico
+• Bilingüismo enriquecedor: usa recursos y términos en inglés cuando amplíen la comprensión
+• Desarrollo integral: académico, emocional, social y creativo
+• El estudiante como protagonista de su propio aprendizaje
+
+Crea un plan de clase COMPLETO, PRÁCTICO y de la MÁS ALTA CALIDAD posible para ${nivel}.
+
+Responde ÚNICAMENTE con un objeto JSON puro (sin markdown, sin texto extra):
+{
+  "objetivos": "2-3 objetivos claros y medibles, apropiados para ${nivel}, conectados con ${plan.subTema || plan.tema}",
+  "preguntasGuias": "2-3 preguntas que activen el pensamiento crítico apropiado para la edad y el tema",
+  "ideasFundamentales": "Conceptos clave de la materia conectados con el tema del año y el nivel del grado",
+  "inicio": "Actividad de apertura dinámica (5-10 min) que capture la atención de estudiantes de ${nivel}",
+  "desarrollo": "Actividad principal detallada con pasos concretos, materiales y estrategias diferenciadas para el nivel",
+  "cierre": "Reflexión y cierre significativo (5 min) que conecte con el tema del año y celebre el aprendizaje",
+  "recursos": "2-3 URLs reales de recursos educativos confiables — mezcla de español e inglés, apropiados para facilitadores de ${nivel}"
+}`;
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -917,6 +991,23 @@ export default function App() {
             <label style={{ fontSize: 11, fontWeight: 700, color: "#1a6b3a", textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 4 }}>✦ Sub-tema de la semana</label>
             <input value={plan.subTema} onChange={e => setPlan({ ...plan, subTema: e.target.value })} placeholder="Ej: El fútbol, La natación..." style={{ width: "100%", padding: "7px 10px", borderRadius: 7, border: "2px solid #1a6b3a", fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#1b3a2a", boxSizing: "border-box", outline: "none", background: "#f7fdf9" }} />
           </div>
+        </div>
+        {/* Grade level selector */}
+        <div style={{ maxWidth: 900, margin: "12px auto 0", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <label style={{ fontSize: 11, fontWeight: 700, color: "#4a7c5a", textTransform: "uppercase", letterSpacing: 0.5, fontFamily: "'DM Sans', sans-serif" }}>Nivel de Grado:</label>
+          {["1°-2°", "3°-4°", "5°-6°"].map(nivel => (
+            <button key={nivel} onClick={() => setPlan({ ...plan, nivelGrado: nivel })} style={{
+              padding: "5px 18px", borderRadius: 20, cursor: "pointer",
+              fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13,
+              border: (plan.nivelGrado || "1°-2°") === nivel ? "none" : "1.5px solid #a5d6a7",
+              background: (plan.nivelGrado || "1°-2°") === nivel ? "#1a6b3a" : "transparent",
+              color: (plan.nivelGrado || "1°-2°") === nivel ? "#fff" : "#1a6b3a",
+              transition: "all 0.15s",
+            }}>{nivel}</button>
+          ))}
+          <span style={{ fontSize: 12, color: "#6a9a7a", fontFamily: "'DM Sans', sans-serif", fontStyle: "italic" }}>
+            {gradeAgeContext(plan.nivelGrado || "1°-2°")}
+          </span>
         </div>
         <div style={{ maxWidth: 900, margin: "12px auto 0", display: "flex", alignItems: "center", gap: 12 }}>
           <label style={{ fontSize: 11, fontWeight: 700, color: "#4a7c5a", textTransform: "uppercase", letterSpacing: 0.5 }}>Semana del:</label>
