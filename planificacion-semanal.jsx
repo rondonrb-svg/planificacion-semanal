@@ -299,7 +299,7 @@ function buildContentTable(plan, dia, asambleaText) {
   const z3data = diaData[z3.materia] || {};
   const z3bdata = z3.bottomMateria ? (diaData[z3.bottomMateria] || {}) : {};
   const z1bdata = z1Bottom ? (diaData[z1Bottom.materia] || {}) : {};
-  const avaluoText = "Avalúo: " + AVALUO_OPCIONES.map(o => (z2data.avaluo || []).includes(o) ? `_x_ ${o}` : `___ ${o}`).join(" ");
+  const avaluoText = "Avalúo:\n" + AVALUO_OPCIONES.map(o => (z2data.avaluo || []).includes(o) ? `✓ ${o}` : `☐ ${o}`).join("\n");
   const cp = (text) => {
     const lines = String(text || "").split("\n");
     if (lines.length === 1 && !lines[0]) return cgPara([cgRun("")]);
@@ -526,7 +526,7 @@ function exportPdf(plan) {
         html += row("Cierre", data.cierre);
       }
       html += row("Recursos", data.recursos);
-      if (data.avaluo?.length) html += row("Avalúo", data.avaluo.join(", "));
+      html += row("Avalúo", AVALUO_OPCIONES.map(o => (data.avaluo || []).includes(o) ? `✓ ${o}` : `☐ ${o}`).join("\n"));
       if (data.notas) html += row("Anotaciones", data.notas);
       html += `</table>`;
     }
