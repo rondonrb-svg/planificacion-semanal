@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planificación Semanal</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f0f4f0; }
+    #loading { display: flex; align-items: center; justify-content: center; height: 100vh;
+      font-family: sans-serif; color: #555; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div id="root"><div id="loading">Cargando…</div></div>
+  <script>
+    async function init() {
+      try {
+        const src = await fetch("planificacion-semanal.jsx").then(r => r.text());
+        // Replace ES module imports with global equivalents, then strip "export default"
+        let patched = src.replace(/^import\s*\{([^}]+)\}\s*from\s*["']react["'];?\s*\n?/m,
+          (_, names) => `const { ${names.trim()} } = React;\n`);
+        patched = patched.replace(/^export default /m, "");
+        const { code } = Babel.transform(patched, { presets: ["react"] });
+        // eslint-disable-next-line no-eval
+        eval(code);
+        ReactDOM.createRoot(document.getElementById("root")).render(
+          React.createElement(App)
+        );
+      } catch (e) {
+        document.getElementById("root").innerHTML =
+          `<div id="loading" style="color:red">Error al cargar: ${e.message}</div>`;
+        console.error(e);
+      }
+    }
+    init();
+  </script>
+</body>
+</html>
