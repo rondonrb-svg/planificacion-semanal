@@ -36,9 +36,12 @@ const emptyPlan = (semana = "") => ({
   tema: "Los deportes",
   subTema: "",
   dias: Object.fromEntries(
-    DIAS.map(d => [d, Object.fromEntries(
-      MATERIAS_POR_DIA[d].filter(m => !SKIP_MATERIAS.includes(m)).map(m => [m, emptyMateria()])
-    )])
+    DIAS.map(d => [d, {
+      asamblea: ASAMBLEA_TEXT,
+      ...Object.fromEntries(
+        MATERIAS_POR_DIA[d].filter(m => !SKIP_MATERIAS.includes(m)).map(m => [m, emptyMateria()])
+      )
+    }])
   ),
 });
 
@@ -288,7 +291,7 @@ const CONTENT_TABLE_DATA = {
   "Viernes":   { grid:[1935,270,270,1725,2010,3420,270,1065,1080,990],   z1:{gs:2,w:2205,col0:1935,col1:270,header:"Asamblea"},   sep1:270, z2:{gs:3,w:7155,materia:"Estudios Sociales",mainGs:2,mainW:3735,avalW:3420,iW:1725,dW:2010,cW:3420}, sep2:270, z3:{gs:3,w:3135,materia:"Ciudadanía",iW:1065,dW:1080,cW:990}, z1Bottom:{materia:"Investigación"}, rows:9 },
 };
 
-function buildContentTable(plan, dia) {
+function buildContentTable(plan, dia, asambleaText) {
   const cfg = CONTENT_TABLE_DATA[dia];
   const { z1, z2, z3, sep1, sep2, z1Bottom } = cfg;
   const diaData = plan.dias[dia] || {};
@@ -308,7 +311,7 @@ function buildContentTable(plan, dia) {
   const rows = [];
   if (cfg.rows === 9) {
     rows.push(makeRow([hdr(z1.w,z1.gs,z1.header), sep(sep1,"restart"), hdr(z2.w,z2.gs,z2.materia), sep(sep2,"restart"), hdr(z3.w,z3.gs,z3.materia)]));
-    rows.push(makeRow([cc(z1.col0,ASAMBLEA_TEXT,{vm:"restart"}), cc(z1.col1,"",{vm:"restart"}), sep(sep1,"cont"), cc(z2.mainW,"Objetivos: "+(z2data.objetivos||""),{span:z2.mainGs}), cc(z2.avalW,avaluoText,{vm:"restart"}), sep(sep2,"cont"), cc(z3.w,"Objetivos: "+(z3data.objetivos||"")+(z3data.preguntasGuias?"\nPreguntas Guías: "+z3data.preguntasGuias:""),{span:z3.gs,vm:"restart"})]));
+    rows.push(makeRow([cc(z1.col0,asambleaText,{vm:"restart"}), cc(z1.col1,"",{vm:"restart"}), sep(sep1,"cont"), cc(z2.mainW,"Objetivos: "+(z2data.objetivos||""),{span:z2.mainGs}), cc(z2.avalW,avaluoText,{vm:"restart"}), sep(sep2,"cont"), cc(z3.w,"Objetivos: "+(z3data.objetivos||"")+(z3data.preguntasGuias?"\nPreguntas Guías: "+z3data.preguntasGuias:""),{span:z3.gs,vm:"restart"})]));
     rows.push(makeRow([cc(z1.col0,"",{vm:"cont"}), cc(z1.col1,"",{vm:"cont"}), sep(sep1,"cont"), cc(z2.mainW,"Preguntas Guías: "+(z2data.preguntasGuias||""),{span:z2.mainGs,vm:"restart"}), cc(z2.avalW,"",{vm:"cont"}), sep(sep2,"cont"), cc(z3.w,"Secuencia de actividades:",{span:z3.gs})]));
     rows.push(makeRow([cc(z1.col0,"",{vm:"cont"}), cc(z1.col1,"",{vm:"cont"}), sep(sep1,"cont"), cc(z2.mainW,"",{span:z2.mainGs,vm:"cont"}), cc(z2.avalW,"",{vm:"cont"}), sep(sep2,"cont"), cc(z3.iW,"Inicio: "+(z3data.inicio||""),{vm:"restart"}), cc(z3.dW,"Desarrollo: "+(z3data.desarrollo||""),{vm:"restart"}), cc(z3.cW,"Cierre: "+(z3data.cierre||""),{vm:"restart"})]));
     rows.push(makeRow([cc(z1.col0,"",{vm:"cont"}), cc(z1.col1,"",{vm:"cont"}), sep(sep1,"cont"), cc(z2.mainW,"Ideas Fundamentales: "+(z2data.ideasFundamentales||""),{span:z2.mainGs,vm:"restart"}), cc(z2.avalW,"",{vm:"cont"}), sep(sep2,"cont"), cc(z3.iW,"",{vm:"cont"}), cc(z3.dW,"",{vm:"cont"}), cc(z3.cW,"",{vm:"cont"})]));
@@ -320,7 +323,7 @@ function buildContentTable(plan, dia) {
   } else {
     // Jueves 12-row
     rows.push(makeRow([hdr(z1.w,z1.gs,z1.header), sep(sep1,"restart"), hdr(z2.w,z2.gs,z2.materia), sep(sep2,"restart"), hdr(z3.w,z3.gs,z3.materia)]));
-    rows.push(makeRow([cc(z1.col0,ASAMBLEA_TEXT,{vm:"restart"}), cc(z1.col1,"",{vm:"restart"}), sep(sep1,"cont"), cc(z2.mainW,"Objetivos: "+(z2data.objetivos||""),{span:z2.mainGs}), cc(z2.avalW,avaluoText,{vm:"restart"}), sep(sep2,"cont"), cc(z3.w,"Objetivos: "+(z3data.objetivos||"")+(z3data.preguntasGuias?"\nPreguntas Guías: "+z3data.preguntasGuias:""),{span:z3.gs,vm:"restart"})]));
+    rows.push(makeRow([cc(z1.col0,asambleaText,{vm:"restart"}), cc(z1.col1,"",{vm:"restart"}), sep(sep1,"cont"), cc(z2.mainW,"Objetivos: "+(z2data.objetivos||""),{span:z2.mainGs}), cc(z2.avalW,avaluoText,{vm:"restart"}), sep(sep2,"cont"), cc(z3.w,"Objetivos: "+(z3data.objetivos||"")+(z3data.preguntasGuias?"\nPreguntas Guías: "+z3data.preguntasGuias:""),{span:z3.gs,vm:"restart"})]));
     rows.push(makeRow([cc(z1.col0,"",{vm:"cont"}), cc(z1.col1,"",{vm:"cont"}), sep(sep1,"cont"), cc(z2.mainW,"Preguntas Guías: "+(z2data.preguntasGuias||""),{span:z2.mainGs,vm:"restart"}), cc(z2.avalW,"",{vm:"cont"}), sep(sep2,"cont"), cc(z3.w,"Secuencia de actividades:",{span:z3.gs})]));
     rows.push(makeRow([cc(z1.col0,"",{vm:"cont"}), cc(z1.col1,"",{vm:"cont"}), sep(sep1,"cont"), cc(z2.mainW,"",{span:z2.mainGs,vm:"cont"}), cc(z2.avalW,"",{vm:"cont"}), sep(sep2,"cont"), cc(z3.iW,"Inicio: "+(z3data.inicio||""),{span:z3.iGs,vm:"restart"}), cc(z3.dW,"Desarrollo: "+(z3data.desarrollo||""),{span:z3.dGs,vm:"restart"}), cc(z3.cW,"Cierre: "+(z3data.cierre||""),{vm:"restart"})]));
     rows.push(makeRow([cc(z1.col0,"",{vm:"cont"}), cc(z1.col1,"",{vm:"cont"}), sep(sep1,"cont"), cc(z2.mainW,"Ideas Fundamentales: "+(z2data.ideasFundamentales||""),{span:z2.mainGs,vm:"restart"}), cc(z2.avalW,"",{vm:"cont"}), sep(sep2,"cont"), cc(z3.iW,"",{span:z3.iGs,vm:"cont"}), cc(z3.dW,"",{span:z3.dGs,vm:"cont"}), cc(z3.cW,"",{vm:"cont"})]));
@@ -364,7 +367,7 @@ function buildDocxBody(plan) {
   DIAS.forEach((dia, i) => {
     parts.push(buildHeaderTable(plan, i));
     parts.push(buildScheduleTable(dia));
-    parts.push(buildContentTable(plan, dia));
+    parts.push(buildContentTable(plan, dia, plan.dias[dia].asamblea ?? ASAMBLEA_TEXT));
     if (i < DIAS.length - 1) {
       parts.push(`<w:p><w:pPr>${buildSectPr(true)}</w:pPr></w:p>`);
     }
@@ -505,7 +508,7 @@ function exportPdf(plan) {
 
   for (const dia of DIAS) {
     html += `<div class="dia-title">${dia.toUpperCase()}</div>`;
-    html += `<div class="asamblea-box"><div class="asamblea-label">Asamblea / Círculo</div>${ASAMBLEA_TEXT.split("\n").map(l => `<div class="asamblea-line">${xmlEscape(l)}</div>`).join("")}</div>`;
+    html += `<div class="asamblea-box"><div class="asamblea-label">Asamblea / Círculo</div>${(plan.dias[dia].asamblea ?? ASAMBLEA_TEXT).split("\n").map(l => `<div class="asamblea-line">${xmlEscape(l)}</div>`).join("")}</div>`;
 
     for (const [materia, data] of Object.entries(plan.dias[dia])) {
       const hasContent = [data.objetivos, data.preguntasGuias, data.ideasFundamentales, data.inicio, data.desarrollo, data.cierre, data.recursos].some(Boolean) || data.avaluo?.length;
@@ -686,18 +689,33 @@ function MateriaCard({ materia, data, onUpdate, plan, dia }) {
   );
 }
 
-function AsambleaBlock() {
-  const lines = ASAMBLEA_TEXT.split("\\n");
+function AsambleaBlock({ value, onChange, isLunes, onResetToLunes }) {
   return (
     <div style={{ borderRadius: 12, border: "1.5px solid #a5d6a7", background: "#f1faf3", marginBottom: 10, overflow: "hidden", boxShadow: "0 1px 4px rgba(26,107,58,0.06)" }}>
       <div style={{ padding: "11px 16px", background: "#e0f2e5", borderBottom: "1.5px solid #a5d6a7", display: "flex", alignItems: "center", gap: 8 }}>
         <span style={{ fontSize: 15, fontWeight: 700, color: "#1a6b3a", fontFamily: "'DM Serif Display', serif" }}>Asamblea / Círculo</span>
-        <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 10, background: "#1a6b3a", color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>Fijo</span>
+        {isLunes && (
+          <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 10, background: "#1a6b3a", color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>
+            Se aplica a todos los días
+          </span>
+        )}
+        {!isLunes && (
+          <button onClick={onResetToLunes}
+            title="Restablecer a las preguntas del Lunes"
+            style={{ marginLeft: "auto", fontSize: 11, padding: "3px 10px", borderRadius: 8, border: "1.5px solid #a5d6a7", background: "transparent", color: "#1a6b3a", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+            ↺ Usar preguntas del Lunes
+          </button>
+        )}
       </div>
-      <div style={{ padding: "14px 20px" }}>
-        {lines.map((line, i) => (
-          <p key={i} style={{ margin: "0 0 6px", fontSize: 13, color: "#2e5c3a", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6 }}>{line}</p>
-        ))}
+      <div style={{ padding: "10px 16px" }}>
+        <textarea
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          rows={5}
+          style={{ width: "100%", boxSizing: "border-box", border: "1.5px solid #c8e6c9", borderRadius: 8, padding: "8px 10px", fontSize: 13, color: "#2e5c3a", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6, background: "#fff", resize: "vertical", outline: "none" }}
+          onFocus={e => e.target.style.borderColor = "#1a6b3a"}
+          onBlur={e => e.target.style.borderColor = "#c8e6c9"}
+        />
       </div>
     </div>
   );
@@ -706,6 +724,15 @@ function AsambleaBlock() {
 function DiaTab({ dia, plan, onUpdate }) {
   const materias = MATERIAS_POR_DIA[dia].filter(m => !SKIP_MATERIAS.includes(m));
   const updateMateria = materia => updated => onUpdate({ ...plan, dias: { ...plan.dias, [dia]: { ...plan.dias[dia], [materia]: updated } } });
+  const updateAsamblea = newText => {
+    if (dia === "Lunes") {
+      const newDias = Object.fromEntries(DIAS.map(d => [d, { ...plan.dias[d], asamblea: newText }]));
+      onUpdate({ ...plan, dias: newDias });
+    } else {
+      onUpdate({ ...plan, dias: { ...plan.dias, [dia]: { ...plan.dias[dia], asamblea: newText } } });
+    }
+  };
+  const resetToLunes = () => updateAsamblea(plan.dias["Lunes"].asamblea ?? ASAMBLEA_TEXT);
   return (
     <div>
       <div style={{ background: "linear-gradient(135deg, #1a6b3a 0%, #2e7d32 100%)", borderRadius: 12, padding: "14px 20px", marginBottom: 16, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
@@ -714,7 +741,12 @@ function DiaTab({ dia, plan, onUpdate }) {
           <span key={m} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 10, background: SKIP_MATERIAS.includes(m) ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.9)", color: SKIP_MATERIAS.includes(m) ? "rgba(255,255,255,0.6)" : "#1a6b3a", fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>{m}</span>
         ))}
       </div>
-      <AsambleaBlock />
+      <AsambleaBlock
+        value={plan.dias[dia].asamblea ?? ASAMBLEA_TEXT}
+        onChange={updateAsamblea}
+        isLunes={dia === "Lunes"}
+        onResetToLunes={resetToLunes}
+      />
       {materias.map(m => <MateriaCard key={m} materia={m} data={plan.dias[dia][m]} onUpdate={updateMateria(m)} plan={plan} dia={dia} />)}
     </div>
   );
