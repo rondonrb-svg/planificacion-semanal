@@ -8,21 +8,67 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #f0f4f0; }
     #loading { display: flex; align-items: center; justify-content: center; height: 100vh;
       font-family: sans-serif; color: #555; font-size: 16px; }
+    #auth-gate {
+      position: fixed; inset: 0; z-index: 9999;
+      background: linear-gradient(135deg, #1a6b3a 0%, #155e34 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #auth-input:focus { border-color: #1a6b3a !important; }
+    #auth-btn:hover { background: #155e34 !important; }
   </style>
 </head>
 <body>
+
+  <!-- Password gate -->
+  <div id="auth-gate">
+    <div style="background:#fff;border-radius:20px;padding:48px 40px;max-width:380px;
+                width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <div style="font-size:40px;margin-bottom:16px;">🌱</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;
+                  color:#4a7c5a;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">
+        Círculo Sembradores Caguas
+      </div>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:26px;color:#1a6b3a;margin-bottom:32px;">
+        Planificación Semanal
+      </h1>
+      <input id="auth-input" type="password" placeholder="Contraseña"
+        style="width:100%;padding:12px 16px;border-radius:10px;border:2px solid #c8e6c9;
+               font-size:16px;font-family:'DM Sans',sans-serif;margin-bottom:12px;
+               box-sizing:border-box;transition:border-color 0.15s;outline:none;" />
+      <div id="auth-error"
+        style="color:#c62828;font-size:13px;font-family:'DM Sans',sans-serif;
+               margin-bottom:12px;display:none;">
+        Contraseña incorrecta. Intenta de nuevo.
+      </div>
+      <button id="auth-btn"
+        style="width:100%;padding:13px;border-radius:10px;border:none;
+               background:#1a6b3a;color:#fff;font-size:16px;font-weight:700;
+               font-family:'DM Sans',sans-serif;cursor:pointer;transition:background 0.15s;">
+        Entrar
+      </button>
+    </div>
+  </div>
+
   <div id="root"><div id="loading">Cargando…</div></div>
+
   <script>
+    // SHA-256 of "Sembradores2025"
+    const AUTH_HASH = "0dfefa1621e2a5393d53a3a4b896a06347704a0e06c19a569d67c5bd8a4db54c";
+
+    async function sha256(str) {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
     async function init() {
       try {
         const src = await fetch("planificacion-semanal.jsx").then(r => r.text());
-        // Replace ES module imports with global equivalents, then strip "export default"
         let patched = src.replace(/^import\s*\{([^}]+)\}\s*from\s*["']react["'];?\s*\n?/m,
           (_, names) => `const { ${names.trim()} } = React;\n`);
         patched = patched.replace(/^export default /m, "");
@@ -38,7 +84,43 @@
         console.error(e);
       }
     }
-    init();
+
+    async function checkAuth() {
+      // Already authenticated this session → skip gate and load app
+      if (sessionStorage.getItem("sembradores_auth") === "1") {
+        document.getElementById("auth-gate").remove();
+        init();
+        return;
+      }
+
+      // Wire up the password form
+      const input  = document.getElementById("auth-input");
+      const btn    = document.getElementById("auth-btn");
+      const errDiv = document.getElementById("auth-error");
+
+      async function attempt() {
+        btn.disabled = true;
+        btn.textContent = "Verificando...";
+        const hash = await sha256(input.value);
+        if (hash === AUTH_HASH) {
+          sessionStorage.setItem("sembradores_auth", "1");
+          document.getElementById("auth-gate").remove();
+          init();
+        } else {
+          errDiv.style.display = "block";
+          input.value = "";
+          input.focus();
+          btn.disabled = false;
+          btn.textContent = "Entrar";
+        }
+      }
+
+      btn.addEventListener("click", attempt);
+      input.addEventListener("keydown", e => { if (e.key === "Enter") attempt(); });
+      input.focus();
+    }
+
+    checkAuth();
   </script>
 </body>
 </html>
